@@ -1,0 +1,264 @@
+INSTALLING ANSIBLE WITH DIFFERENT USERS
+1. launch 3 ubuntu instances and name them manager,node1,node2
+2. run below commands on all instances:
+	apt update
+	apt-get update
+
+
+   NOW FOLLOW BELOW STEPS ON MANAGER NODES (STEP 3 TO 7):
+3. create user (name = user0) and set password (redhat@123) while creating user.
+	adduser user0
+
+4. set password authentication to yes (it is set to no bydefault)
+   vim /etc/ssh/sshd_config
+# To disable tunneled clear text passwords, change to no here!
+    PasswordAuthentication no
+    #PermitEmptyPasswords no
+  
+    we will change this PasswordAuthentication from no to yes.
+
+    # To disable tunneled clear text passwords, change to no here!
+    PasswordAuthentication yes
+    #PermitEmptyPasswords no
+
+now we will save this file.
+
+
+5. Restart sshd service to enable changes:
+ 	systemctl restart sshd
+
+6. Now we will give sudo rights to user0 by making its entry in 90-cloud-init-users. This is an already created file under /etc/sudoers.d
+	vim /etc/sudoers.d/90-cloud-init-users
+
+
+        # Created by cloud-init v. 19.4-33-gbb4131a2-0ubuntu1~18.04.1 on Thu, 14 May 2020 04:57:38 +0000
+
+      # User rules for ubuntu
+        ubuntu ALL=(ALL) NOPASSWD:ALL
+
+
+we will write the entry for user0 in this file, so that it will have sudo rights.
+
+
+
+      # User rules for ubuntu
+       ubuntu ALL=(ALL) NOPASSWD:ALL
+       user0  ALL=(ALL) NOPASSWD:ALL
+
+   
+now save and exit.
+
+
+7. Now we will restart sshd service once more:
+	systemctl restart sshd
+
+
+
+
+8. NOW WE WILL CREATE USER (user1) IN NODE1, MAKE ITS ENTRY IN 90-cloud-init-users ,SET passwordAuthentication FROM no TO yes IN sshd_config under /etc/ssh/
+   AND RESTART sshd SERVICE.
+	adduser user1
+	vim /etc/ssh/sshd_config
+
+	vim /etc/sudoers.d/90-cloud-init-users
+        # User rules for ubuntu
+        ubuntu ALL=(ALL) NOPASSWD:ALL
+        user1  ALL=(ALL) NOPASSWD:ALL
+
+
+	systemctl restart sshd
+
+
+9. NOW WE WILL CREATE USER (user2) IN NODE2, MAKE ITS ENTRY IN 90-cloud-init-users ,SET passwordAuthentication FROM no TO yes IN sshd_config under /etc/ssh/
+   AND RESTART sshd SERVICE.
+        adduser user2
+        vim /etc/ssh/sshd_config
+
+        vim /etc/sudoers.d/90-cloud-init-users
+        # User rules for ubuntu
+        ubuntu ALL=(ALL) NOPASSWD:ALL
+        user2  ALL=(ALL) NOPASSWD:ALL
+
+
+        systemctl restart sshd
+
+
+NOW WE HAVE CREATED USERS . NOW WE WILL ESTABLISH SSH CONNECTION. FOR THAT WE WILL CREATE ssh key AND COPY THIS KEY IN BOTH NODES AND CHECK THE SSH CONNECTION.
+
+RUN BELOW COMMANDS ON MANAGER (FROMM STEP 10 TO STEP 13) :
+
+10. ssh-keygen
+
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /root/.ssh/id_rsa.
+Your public key has been saved in /root/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:6evLkWyTS2VPRVD7Bmwghuoi3Y+owe0FVfFIvJZapQw root@manager
+The key's randomart image is:
++---[RSA 2048]----+
+|       .+oo ooo  |
+|      Eoo+.. + . |
+|      .+.=.   *  |
+|     .. B.   o o |
+|   ..o +S o .   o|
+| ...o.+o = o   . |
+|  o..o.oX   .    |
+|   o...+.=       |
+|  ...  .*.       |
++----[SHA256]-----+
+root@manager:~#
+
+11. copying this key from manger to node1
+	ssh-copy-id user1@52.66.235.105  (this is the public ip of node1)
+
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/root/.ssh/id_rsa.pub"
+The authenticity of host '52.66.235.105 (52.66.235.105)' can't be established.
+ECDSA key fingerprint is SHA256:riHHtRiyGtyewrV4NvSkZTlac/4zaCb8NEIbvEWL5F8.
+Are you sure you want to continue connecting (yes/no)? yes
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+user1@52.66.235.105's password:
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   "ssh 'user1@52.66.235.105'"
+and check to make sure that only the key(s) you wanted were added.
+
+12.ssh user1@52.66.235.105
+
+Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-1065-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Thu May 14 05:36:45 UTC 2020
+
+  System load:  0.0               Processes:           97
+  Usage of /:   16.0% of 7.69GB   Users logged in:     1
+  Memory usage: 16%               IP address for eth0: 172.31.15.253
+  Swap usage:   0%
+
+
+43 packages can be updated.
+24 updates are security updates.
+
+
+user1@node1:
+
+
+12. ssh-copy-id user2@13.232.125.30
+13. ssh user2@13.232.125.30
+
+NOW SSH HAS BEEN ESTABLISHED AND ALL NODES CAN COMMUNICATE WITH EACH OTHER.
+
+NOW WE WILL INSTALL ANSIBLE,PYTHON AND PYTHON-APT ON MANAGER NODE:
+
+RUN BELOW COMMAND ON MANAGER NODE:
+14. apt update
+15. apt-get update
+16. apt install ansible
+17. apt install python
+18. apt install python-apt
+
+RUN BELOW COMMAND ON NODE1 AND NODE2:
+19. apt update
+20. apt-get update
+21. apt install python
+22. apt install python-apt   
+
+NOW ALL PREREQUISITS HAVE BEEN INSTALLED ON MANAGER AND MANAGED NODES.
+
+NOW WE WILL GO TO MANAGER, LOGIN VIA user0:
+23. su user0
+24. cd /etc/ansible
+25. ls -lrt
+total 24
+-rw-r--r-- 1 root root   982 Sep  5  2017 hosts
+-rw-r--r-- 1 root root 19315 Apr 19  2018 ansible.cfg
+
+here are two files: 1. hosts: in this file , we will mention the ip addresses,ansible users and configurations  of our managed nodes.
+		    2. ansible.cfg : it is the default file created after installing ansible having all configuration.
+
+26.  sudo vim /etc/ansible/hosts
+
+# This is the default ansible 'hosts' file.
+#
+# It should live in /etc/ansible/hosts
+#
+#   - Comments begin with the '#' character
+#   - Blank lines are ignored
+#   - Groups of hosts are delimited by [header] elements
+#   - You can enter hostnames or ip addresses
+#   - A hostname/ip can be a member of multiple groups
+-
+-
+-
+-
+-
+-
+-# leading 0s:
+
+#db-[99:101]-node.example.com
+
+NOW WE WILL MENTION IP ADDRESSES AND ANSIBLE USERS OF OUR MANAGED NODES IN A GROUP (test-servers)
+
+[test-servers]
+172.31.15.253 ansible_user=user1
+172.31.7.120 ansible_user=user2
+
+# This is the default ansible 'hosts' file.
+#
+
+NOW WE WILL GIVE CREATE A FILE (.ansible.cfg) UNDER /etc/ansible AND WE WILL DEFINE THE ADDRESS OF OUR INVENTORY (/etc/ansible/hosts) IN THIS FILE. 
+27. sudo vim .ansible.cfg
+
+[defaults]
+inventory=/etc/ansible/hosts
+
+
+
+
+NOW WE WILL CREATE .vimrc FILE UNDER /home/user0 FOR INDENTATION.
+28. sudo vim .vimrc
+
+set ai
+set ts=2
+set shiftwidth=4
+set expandtab
+
+~
+NOW WE WILL CREATE A yml FILE FOR PLAYBOOK UNDER /home/user0:
+29. sudo vim myplaybook.yml
+
+- name: this is my playbook to install and run apache
+  hosts: all
+  tasks:
+    - name: install apache webserver
+      apt:
+       name: apache2
+       state: latest
+    - name: start the apache service
+      service:
+       name: apache2
+       state: started
+    - name: create index.html file
+      copy:
+       src: /home/user0/index.html
+       dest: /var/www/html/index.html
+
+
+NOW WE WILL PERFORM DRY RUN :
+30. sudo ansible-playbook -C myplaybook.yml
+
+NOW WE WILL EXECUTE OUR PLAYBOOK:
+31. sudo ansible-playbook myplaybook.yml -b
+
+above command will install and start apache webserver in manged nodes.
+If we browse the public ip of node1 and node2 we will see below content :
+
+hi this is ansible testing
+
