@@ -1,0 +1,323 @@
+ANSIBLE_ROLES:
+HERE WE HAVE 5 UBUNTU INSTANCES AS :
+manager,worker1,worker2,worker3,worker4,worker5
+we have established SSH connection between them.
+we have installed ansible,python and python-apt in manager.
+we have installed python and python-apt in all worker nodes.
+we have defined all the worker node's ip and ansible user in hosts file under /etc/ansible 
+we have defined inventory address in .ansible.cfg file under /etc/ansible.
+NOW BELOW SOMMAND IS RUNNING SUCCESSFULLY HTAT SHOWS OUR CONNECTION ARE HEALTHY:
+sudo ansible -m ping all
+172.31.14.92 | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+172.31.36.59 | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+172.31.40.90 | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+172.31.45.81 | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+172.31.34.69 | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+
+NOW WE HAVE 3 GROUPS OF SERVERS :
+test-servers: worker1 and worker2
+g : worker3 and worker4
+G : worker5 
+
+[test-servers]
+172.31.34.69 ansible_user=user1
+172.31.36.59 ansible_user=user2
+
+[g]
+172.31.45.81 ansible_user=user3
+172.31.40.90 ansible_user=user4
+
+[G]
+172.31.14.92 ansible_user=user5
+
+WE WILL INSTALL APACHE ON test-server
+		NGINX ON g
+		DOCKER ON G
+		GIT ON G
+
+IN ORDER TO DO SO, WE NEED TO CREATE ansible roles.
+
+so we go to manager node and run below commands:
+1.cd /etc/ansible
+2. sudo ansible-galaxy init roles
+3. cd roles
+above command will create a directory nemd roles, now we will jump in to this roles and create 3 roles under it with names apache,nginx,git
+
+4. sudo ansible-galaxy init apache
+   sudo ansible-galaxy init nginx
+   sudo ansible-galaxy init git
+
+5. now jump into apache
+   cd apache
+   ls -lrt
+
+user0@manager:/etc/ansible/roles/apache$ ls -lrt
+total 36
+drwxr-xr-x 2 root root 4096 May 15 07:35 tests
+drwxr-xr-x 2 root root 4096 May 15 07:35 templates
+drwxr-xr-x 2 root root 4096 May 15 07:35 tasks
+drwxr-xr-x 2 root root 4096 May 15 07:35 handlers
+drwxr-xr-x 2 root root 4096 May 15 07:35 files
+-rw-r--r-- 1 root root 1328 May 15 07:35 README.md
+drwxr-xr-x 2 root root 4096 May 15 07:35 vars
+drwxr-xr-x 2 root root 4096 May 15 07:35 meta
+drwxr-xr-x 2 root root 4096 May 15 07:35 defaults
+
+
+NOW WE WILL MOVE INTO tasks:
+
+user0@manager:/etc/ansible/roles/apache$ cd tasks/
+user0@manager:/etc/ansible/roles/apache/tasks$
+
+IN THIS DIRECTORY ,WE HAVE A yml file : main.yml
+
+user0@manager:/etc/ansible/roles/apache/tasks$ ls -lrt
+total 4
+-rw-r--r-- 1 root root 27 May 15 07:35 main.yml
+user0@manager:/etc/ansible/roles/apache/tasks$
+
+in this file we need to mention the tasks for this particular role:
+
+but before doing that we will create some files in /home/user0:
+
+FIRT WE WILL CREATE A DIRECTORY apache AND WILL CREATE ONE FILE index.html UNDER IT:
+
+mkdir apache
+cd apache
+sudo vim index.html
+
+user0@manager:~$ mkdir apache
+user0@manager:~$ cd apache/
+user0@manager:~/apache$ sudo vi index.html
+user0@manager:~/apache$ pwd
+/home/user0/apache
+user0@manager:~/apache$ cat index.html
+hi this is apache webserver installing via ansible roles
+user0@manager:~/apache$
+
+NOW WE WILL CREATE A DIRECTORY nginx AND WILL CREATE ONE FILE index.html IN IT:
+mkdir nginx
+cd nginx
+sudo vi index.html
+
+user0@manager:~$ mkdir nginx
+user0@manager:~$ cd nginx/
+user0@manager:~/nginx$ sudo vi index.html
+user0@manager:~/nginx$ cat index.html
+this is ansible role testing via installing nginx
+
+
+NOW WE WILL CREATE A FILE .vimrc UNDER /home/user0 FOR INDENTATION:
+sudo vim .vimrc
+
+set ai
+set ts=2
+set shiftwidth=4
+set expandtab
+
+
+NOW WE WILL GO TO /etc/ansible/roles/apache/task
+ cd /etc/ansible/roles/apache/task
+ vi main.yml
+
+ IN THIS FILE WE WILL CREATE TASK TO INSTALL APACHE ON GROUP test-servers:
+
+---
+
+   - name: install apache webser
+     apt:
+      name: apache2
+      state: latest
+   - name: start the apache service
+     service:
+      name: apache2
+      state: started
+   - name: create index.html file
+     copy:
+      src: /home/user0/apache/index.html
+      dest: /var/www/html/index.html
+
+
+
+
+NOW OUR ROLE HAS BEEN CREATED IN WHICH WE HAVE DEFINED THE TASKS TO INSTALL APACHE.
+
+NOW WE WILL MOVE /etc/ansible/roles/nginx/tasks
+cd /etc/ansible/roles/nginx/tasks
+sudo vi main.yml
+
+root@manager:/etc/ansible/roles# cd nginx/
+root@manager:/etc/ansible/roles/nginx# cd tasks/
+root@manager:/etc/ansible/roles/nginx/tasks# vi main.yml
+
+IN THIS YML FILE WE WILL DEFINE THE TASKS TO INSTALL NGINX:
+
+
+---
+
+- name: install nginx webserver
+  apt:
+   name: nginx
+   state: latest
+- name: start the nginx service
+  service:
+   name: nginx
+   state: started
+- name: create index.html file
+  copy:
+   src: /home/user0/nginx/index.html
+   dest: /var/www/html/index.html
+
+
+NOW WE WILL GO TO git/tasks/main.yml
+
+root@manager:/etc/ansible/roles# cd git/
+root@manager:/etc/ansible/roles/git# cd tasks/
+root@manager:/etc/ansible/roles/git/tasks# vi main.yml
+
+IN THIS FILE WE WILL DEFINE THE TASKS TO INSTALL GIT :
+
+root@manager:/etc/ansible/roles/giti/tasks# cat main.yml
+---
+
+- name: install git
+  apt:
+    name: git
+    state: latest
+    
+    # tasks file for git
+
+
+
+NOW WE HAVE CREATED 3 ROLES TO INSTALL apache,nginx AND git.
+
+NOW WE WILL CREATE A PLAYBOOK AND CALL ROLES:
+
+FIRST WE WILL INSTALL APACHE ON -test-servers VIA CALLING ROLE apache:
+
+FOR THAT WE WILL CREATE A PLAYBOOK myapache.yml:
+
+sudo myapache.yml
+
+user0@manager:~$ sudo vim myapache.yml
+
+---
+- name: playbook to install apache
+  hosts: test-servers
+  become: true
+  roles:
+     - apache
+
+     
+NOW WE WILL EXECUTE OUR PLAYBOOK :
+
+user0@manager:~$ sudo ansible-playbook myapache.yml
+
+THIS COMMAND WILL INSTALL apache ON test-servers :
+
+NOW IF WE BROWSE PUBLIC IP OF NODE worker1 AND worker2, WE WILL FIND BELOW CONTENT:
+
+hi this is apache webserver installing via ansible roles
+
+
+NOW WE WILL INSTALL nginx ON GROUP g :
+FOR THAT WE WILL CREATE A PLAYBOOK mynginx
+
+sudo vim myapache.yml
+
+---
+
+- name: install nginx
+  become: true
+  hosts: g
+  roles:
+     - nginx
+
+
+
+
+NOW WE WILL EXECUTE THIS PLAYBOOK:
+sudo ansible-playbook mynginx.yml
+
+THIS WILL INSTALL nginx ON GROUP g:
+NOW IF WE BROWSE THE PUBLIC IP OF work node3 AND work node 4, WE WILL GET THE BELOW CONTENT :
+this is ansible role testing via installing nginx
+
+
+NOW WE WILL INSTALL GIT ON GROUP G:
+FOR THAT WE WILL CREATE A PLAYBOOK myplaybook.yml:
+
+sudo vim myplaybook.yml
+
+user0@manager:~$ cat myplaybook.yml
+---
+- name: install git
+  become: true
+  hosts: G
+  roles:
+     - git
+
+
+
+     NOW WE WILL EXECUTE THE PLYBOOK:
+
+     sudo ansible-plybook myplaybook.yml
+
+     THIS COMMAND WILL INSTALL GIT ON work node 5.
+
+     NOW WE WILL LOG INTO worker node 5 AND CHECK THE GIT :
+
+     user5@worker5:~$ git --version
+     git version 2.17.1
+     user5@worker5:~$
+
+     HENCE WE FOUND THAT git HAS BEEN INSTALLED ON worker node 5.
+
+     NOW WE WILL INITIATE git ON worker node 5 :
+
+     user5@worker5:~$ sudo git init
+     Initialized empty Git repository in /home/user5/.git/
+     
+     user5@worker5:~$ cd .git/
+     user5@worker5:~/.git$
+     user5@worker5:~/.git$ sudo git remote add origin https://github.com/maya1992/ans            ible
+     user5@worker5:~/.git$ sudo git clone https://github.com/maya1992/ansible
+     Cloning into 'ansible'...
+     remote: Enumerating objects: 6, done.
+     remote: Counting objects: 100% (6/6), done.
+     remote: Compressing objects: 100% (4/4), done.
+     remote: Total 6 (delta 0), reused 3 (delta 0), pack-reused 0
+     Unpacking objects: 100% (6/6), done.
+     user5@worker5:~/.git$ ls -lrt
+     total 36
+     drwxr-xr-x 4 root root 4096 May 15 11:01 refs
+     drwxr-xr-x 2 root root 4096 May 15 11:01 info
+     drwxr-xr-x 2 root root 4096 May 15 11:01 hooks
+     -rw-r--r-- 1 root root   73 May 15 11:01 description
+     drwxr-xr-x 2 root root 4096 May 15 11:01 branches
+     -rw-r--r-- 1 root root   23 May 15 11:01 HEAD
+     drwxr-xr-x 4 root root 4096 May 15 11:01 objects
+     -rw-r--r-- 1 root root  198 May 15 11:03 config
+     drwxr-xr-x 3 root root 4096 May 15 11:03 ansible
+
+     HENCE WE HAVE SEEN THAT git IS WORKING FINE .
+
+
+     HENCE WE HAVE PERFORMED 3 DIFFERENT TASKS ON 3 DIFFERENT GROUP OF SERVERS.
+
+
