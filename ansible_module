@@ -1,0 +1,76 @@
+NOW WE WILL LEARN ANSIBLE MODULES
+
+LAUNCH TWO UBUNTU INSTANCES
+ESTABLISH SSH CONFIGURATION
+
+AFTER SSH, INSTALL ANSIBLE,PYTHON,PYTHON-APT IN MANAGER NODE.
+INSTALL PYTHON AND PYTHON-APT IN WORKER
+
+CHECK ANSIBLE CONNECTIONS VIA RUNNING BELOW COMMAND 
+
+ansible -m ping "test-servers"
+
+NOW OUR CONNECTIONS ARE WORKING FINE.
+
+NOW WE WILL INSTALL APACHE SERVER ON WORKER NODE VIA ANSIBLE MODULES:
+
+ANSIBLE MODULES
+
+AFTER THIS WE WILL RUN BELOW COMMAND ON MANAGER NODE:
+
+sudo ansible test-server -m apt -a "name=apache2 state=latest" -b
+
+IN THIS COMMAND: test-server IS THE GROUP OF SERVERS ONWHICH WE WANT TO PERFORM TASK OR INSTALL APACHE SERVER.
+                : -m REFERS TO module
+                : apt IS THE NAME OF MODULE THAT WILL BE USED TO INSTALL apache
+                : -a IS THE OPTION TO RUN THE COMMAND
+                :name IS THE NAME OF SERVER THAT WILL BE DOWNLOADED
+                : state IS STATE THAT WILL BE THE NAME OF THE STATE THAT WILL BE DOWNLOADED.
+                : -b  IS THE OPTION TO RUN THE COMMAND
+
+THIS COMMAND WILL INSTALL apache webserver ON WORKER NODE.
+
+NOW WE WILL START THE apache2 SERVICE.
+
+sudo ansible test-server -m service -a "name=apache2 state=started" -b
+
+
+HERE MODULE IS service, NAME OF SERVICE IS apache2 AND state OF THE SERVICE IS started/
+
+THIS COMMAND WILL START THE APACHE SERVVICE.
+
+
+NOW WE WILL COPY THE index.html FILE FROM /root/apachetest/index.html TO /var/www/html/index.html
+
+sudo ansible test-server -m copy -a "src=/root/apachetest/index.html dest=/var/www/html/index.html"
+
+THIS COMMAND WILL COPY THE index.html FILE.
+
+NOW IF WE BROWSE THE PUBLIC IP OF WORKER NODE, WE WILL GET BELOW CONTENT:
+
+hi this is ansible module testing via installing apache server
+
+SO WE HAVE INSTALLED AND RUN apache SERVER ON WORKER NODE .
+
+
+NOW WE WILL STOP THE apache SERVICE VIA ANSIBLE MODULE:
+
+sudo ansible test-server -m service -a "name=apache2 state=stopped" -b
+
+NOW IF WE BROWSE THE PUBLIC IP OF WORKER NODE, WE WILL FOUND THAT :
+
+site can't be reached.
+
+MEANS APACHE SERVICE HAS BEEN STOPPED.
+
+NOW WE WILL START THE apache SERVICE AGAIN:
+
+sudo ansible test-server -m service -a "name=apache2 state=started" -b
+
+NOW IF WE BROWSE THE PUBLIC IP OF WORKER NODE,WE WILL GET THE OLD CONTENT AGAIN :
+hi this is ansible module testing via installing apache server
+
+SO WE HAVE INSTALLED APACHE , STARTED ND STOPPED THE SERVICE VIA ANSIBLE MODULES
+
+
+
