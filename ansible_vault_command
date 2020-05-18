@@ -1,0 +1,35 @@
+ANSIBLE VAULT:
+Ansible Vault is a feature of Ansible that allows us to keep our senitive data such as passwords or keys in encrypted format rather than in a plain text in playbooks or roles.
+Example: Suppose we need to connect to our GitHub but to connect with GitHub either we need to provide our username and password or our keys to enable for passwordless authentication. In this type of situation we can not keep our senitive data within the playbook because we may need to share our playbook with others which will create problem.
+So to avoid this type of problems , we use Ansible Vault. 
+All our vault commands start with "ansible-vault" like we use "ansible-playbook" while running our playbooks. 
+Commands:
+1. create : If we create a new file and we want to encrypt our data while creating the file, then we use "create". I will create an encrypted file.
+ansible-vault create myplaybook.yml 
+first we will be prompted for a password. After providing the password,the toll will launch the editor(like vi) . Once we are done with the editor session , the file will be saved as encrypted data.
+**to create a new encrypted data file with the Vauld ID "password1" assigned to it and be prompted for the password, run below command :
+ansible-vault create --vault-id password1@prompt myplaybook.yml
+
+2. view : this command is used to see the data of encrypted file. 
+ansible-vault view myplaybook.yml
+
+3. edit : this command is used to edit an encrypted file.
+ansible-vault edit myplaybook.yml
+
+**to edit a file encrypted with the "vault2 " password file and assigned the "pass2" vault ID:
+(means vault id = pass2     and      password=vault2):
+ansible-vault edit --vault-id pass2@vault2 myplaybook.yml
+
+IF WE USE VI OR CAT , FILE WILL BE VIEWED IN ENCRYPTED FORMAT.
+
+4.encrypt : if we have created a file but lateron we realised that file contains senitive data , then we can encrypt that file with the help of encrypt command. This command is used to convert an unencrypted file into encrypted file.
+ansible-vault encrypt myplaybook.yml
+
+5. decrypt : This command is used to convert an encrypted file into decrypt file.
+ansible-vault decrypt myplaybook.yml
+
+6. --ask-vault-pass :  When we use this option , it asks for password while running playbook, after providing the password, it will decrypt the file.
+
+7. --vault-password-file : to pass a vault password through a file. 
+
+
